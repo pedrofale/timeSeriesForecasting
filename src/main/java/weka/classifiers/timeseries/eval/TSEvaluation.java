@@ -641,6 +641,8 @@ public class TSEvaluation {
     m_trainingFuture = null;
     m_testFuture = null;
 
+    Object postTrainingState = forecaster.getPreviousState();
+
     // train the forecaster first (if necessary)
     if (m_trainingData != null && buildModel) {
       for (PrintStream p : progress) {
@@ -690,6 +692,8 @@ public class TSEvaluation {
       for (PrintStream p : progress) {
         p.println("Evaluating on training set...");
       }
+      // Reset forecaster state
+      forecaster.clearPreviousState();
 
       // set up training set prediction and eval modules
       m_predictionsForTrainingData = new ArrayList<ErrorModule>();
@@ -711,6 +715,7 @@ public class TSEvaluation {
         Instance current = m_trainingData.instance(i);
 
         if (i < m_primeWindowSize) {
+          // reset state
           primeData.add(current);
         } else {
           if (i % 10 == 0) {
@@ -719,7 +724,8 @@ public class TSEvaluation {
                 + " instances...");
             }
           }
-
+          // Clear state every time a forecast is made on new priming data
+//          forecaster.clearPreviousState();
           forecaster.primeForecaster(primeData);
           /*
            * System.err.println(primeData); System.exit(1);
@@ -753,6 +759,8 @@ public class TSEvaluation {
           }
         }
       }
+      // Restore post-training state
+      forecaster.setPreviousState(postTrainingState);
     }
 
     if (m_trainingData != null && m_forecastFuture
@@ -867,6 +875,7 @@ public class TSEvaluation {
       for (int i = predictionOffsetForTestData; i < m_testData.numInstances(); i++) {
         Instance current = m_testData.instance(i);
         if (m_primeWindowSize > 0) {
+          // reset state
           forecaster.primeForecaster(primeData);
         }
 

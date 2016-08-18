@@ -31,8 +31,31 @@ import weka.core.Instances;
  * @version $Revision: 45163 $
  */
 public interface TSForecaster {
-  
-  
+
+  /**
+   * Check whether the base learner requires operations regarding state
+   *
+   * @return true if base learner uses state-based predictions, false otherwise
+   */
+  public boolean usesState();
+
+  /**
+   * Reset model state.
+   */
+  public void clearPreviousState();
+
+  /**
+   * Load state into model.
+   */
+  public void setPreviousState(Object previousState);
+
+  /**
+   * Get the last set state of the model.
+   *
+   * @return the state of the model to be used in next prediction
+   */
+  public Object getPreviousState();
+
   /**
    * Provides a short name that describes the underlying algorithm
    * in some way.

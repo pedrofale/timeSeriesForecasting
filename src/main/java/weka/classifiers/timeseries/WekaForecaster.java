@@ -22,13 +22,8 @@ import weka.classifiers.AbstractClassifier;
 import weka.classifiers.Classifier;
 import weka.classifiers.evaluation.NumericPrediction;
 import weka.classifiers.functions.LinearRegression;
-import weka.classifiers.timeseries.core.ConfidenceIntervalForecaster;
-import weka.classifiers.timeseries.core.CustomPeriodicTest;
-import weka.classifiers.timeseries.core.ErrorBasedConfidenceIntervalEstimator;
-import weka.classifiers.timeseries.core.IncrementallyPrimeable;
-import weka.classifiers.timeseries.core.OverlayForecaster;
+import weka.classifiers.timeseries.core.*;
 import weka.filters.supervised.attribute.TSLagMaker;
-import weka.classifiers.timeseries.core.TSLagUser;
 import weka.core.Attribute;
 import weka.core.DenseInstance;
 import weka.core.Instance;
@@ -157,6 +152,45 @@ public class WekaForecaster extends AbstractForecaster implements TSLagUser,
     } catch (Exception ex) {
       ex.printStackTrace();
     }
+  }
+
+  /**
+   * Check whether the base learner requires operations regarding state
+   *
+   * @return true if base learner uses state-based predictions, false otherwise
+   */
+  public boolean usesState() {
+    return m_forecaster instanceof StateDependentPredictor;
+  }
+
+  /**
+   * Reset model state.
+   */
+  public void clearPreviousState() {
+    if (usesState())
+      ((StateDependentPredictor) m_singleTargetForecasters.get(0).getWrappedClassifier()).clearPreviousState();
+  }
+
+  /**
+   * Load state into model.
+   */
+  public void setPreviousState(Object previousState) {
+    if (usesState())
+      ((StateDependentPredictor) m_singleTargetForecasters.get(0).getWrappedClassifier()).setPreviousState(previousState);
+  }
+
+  /**
+   * Get the last set state of the model.
+   *
+   * @return the state of the model to be used in next prediction
+   */
+  public Object getPreviousState() {
+    Object state = null;
+
+    if (usesState())
+      state = ((StateDependentPredictor) m_singleTargetForecasters.get(0).getWrappedClassifier()).getPreviousState();
+
+    return state;
   }
 
   /**
@@ -988,7 +1022,6 @@ public class WekaForecaster extends AbstractForecaster implements TSLagUser,
     Instances trainingData = insts;
     trainingData = m_lagMaker.getTransformedData(trainingData);
     // System.err.println(trainingData);
-
 
     m_dateRemover = new RemoveType();
     m_dateRemover.setOptions(new String[] { "-T", "date" });

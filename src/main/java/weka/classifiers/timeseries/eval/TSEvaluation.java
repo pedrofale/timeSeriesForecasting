@@ -640,8 +640,7 @@ public class TSEvaluation {
     m_predictionsForTestData = null;
     m_trainingFuture = null;
     m_testFuture = null;
-
-    Object postTrainingState = forecaster.getPreviousState();
+    int numStepsToForecast = m_horizon;
 
     // train the forecaster first (if necessary)
     if (m_trainingData != null && buildModel) {
@@ -692,8 +691,10 @@ public class TSEvaluation {
       for (PrintStream p : progress) {
         p.println("Evaluating on training set...");
       }
-      // Reset forecaster state
-      forecaster.clearPreviousState();
+      // State dependent predictors update state on each time step prediction,
+      // so when performing evaluation only one time-step ahead must be predicted
+      if (forecaster.usesState())
+        m_horizon = 1;
 
       // set up training set prediction and eval modules
       m_predictionsForTrainingData = new ArrayList<ErrorModule>();
@@ -725,7 +726,6 @@ public class TSEvaluation {
             }
           }
           // Clear state every time a forecast is made on new priming data
-//          forecaster.clearPreviousState();
           forecaster.primeForecaster(primeData);
           /*
            * System.err.println(primeData); System.exit(1);
@@ -759,13 +759,29 @@ public class TSEvaluation {
           }
         }
       }
-      // Restore post-training state
-      forecaster.setPreviousState(postTrainingState);
+      m_horizon = numStepsToForecast;
     }
 
     if (m_trainingData != null && m_forecastFuture
     /* && !m_evaluateTrainingData */) {
+      // To generate future forecast for training data, a state-dependant
+      // model must start predictions from the beginning of the training data
+      if (!m_evaluateTrainingData && forecaster.usesState()) {
+        Instances primeData = new Instances(m_trainingData, 0);
+        for (int i = 0; i < m_trainingData.numInstances(); i++) {
+          Instance current = m_trainingData.instance(i);
+          primeData.add(current);
+          forecaster.primeForecaster(primeData);
+          forecaster.forecast(m_horizon);
 
+          // remove the oldest prime instance and add this one
+          if (m_primeWindowSize > 0 && current != null) {
+            primeData.remove(0);
+            primeData.add(current);
+            primeData.compactify();
+          }
+        }
+      }
       // generate a forecast beyond the end of the training data
       for (PrintStream p : progress) {
         p.println("Generating future forecast for training data...");

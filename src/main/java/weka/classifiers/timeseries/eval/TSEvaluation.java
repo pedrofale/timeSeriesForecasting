@@ -21,6 +21,7 @@ package weka.classifiers.timeseries.eval;
 import weka.classifiers.evaluation.NumericPrediction;
 import weka.classifiers.timeseries.AbstractForecaster;
 import weka.classifiers.timeseries.TSForecaster;
+import weka.classifiers.timeseries.WekaForecaster;
 import weka.classifiers.timeseries.core.OverlayForecaster;
 import weka.filters.supervised.attribute.TSLagMaker;
 import weka.classifiers.timeseries.core.TSLagUser;
@@ -35,13 +36,7 @@ import javax.swing.JPanel;
 import java.beans.BeanInfo;
 import java.beans.Introspector;
 import java.beans.MethodDescriptor;
-import java.io.BufferedReader;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.FileReader;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.io.PrintStream;
+import java.io.*;
 import java.lang.reflect.Method;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -641,8 +636,10 @@ public class TSEvaluation {
     m_trainingFuture = null;
     m_testFuture = null;
     int numStepsToForecast = m_horizon;
+    forecaster.clearPreviousState();
+    List<Object> postTrainingDataState = forecaster.getPreviousState();
 
-    // train the forecaster first (if necessary)
+     // train the forecaster first (if necessary)
     if (m_trainingData != null && buildModel) {
       for (PrintStream p : progress) {
         p.println("Building forecaster...");
@@ -758,29 +755,62 @@ public class TSEvaluation {
             primeData.compactify();
           }
         }
+        // If on the instance before the last one, save the state
+        if (i == m_trainingData.numInstances() - 2)
+          postTrainingDataState = forecaster.getPreviousState();
       }
       m_horizon = numStepsToForecast;
     }
 
-    if (m_trainingData != null && m_forecastFuture
-    /* && !m_evaluateTrainingData */) {
-      // To generate future forecast for training data, a state-dependant
+    if (m_trainingData != null && m_forecastFuture) {
+      // To generate future forecast for training data, a state-dependent
       // model must start predictions from the beginning of the training data
       if (!m_evaluateTrainingData && forecaster.usesState()) {
-        Instances primeData = new Instances(m_trainingData, 0);
-        for (int i = 0; i < m_trainingData.numInstances(); i++) {
-          Instance current = m_trainingData.instance(i);
-          primeData.add(current);
-          forecaster.primeForecaster(primeData);
-          forecaster.forecast(m_horizon);
+        m_horizon = 1;
 
-          // remove the oldest prime instance and add this one
-          if (m_primeWindowSize > 0 && current != null) {
-            primeData.remove(0);
-            primeData.add(current);
-            primeData.compactify();
+        Instances primeData = new Instances(m_trainingData, 0);
+        if (forecaster instanceof TSLagUser) {
+          // if an artificial time stamp is being used, make sure it is reset for
+          // evaluating the training data
+          if (((TSLagUser) forecaster).getTSLagMaker().isUsingAnArtificialTimeIndex()) {
+            ((TSLagUser) forecaster).getTSLagMaker().setArtificialTimeStartValue(
+                    m_primeWindowSize);
           }
         }
+        for (int i = 0; i < m_trainingData.numInstances(); i++) {
+          Instance current = m_trainingData.instance(i);
+
+          if (i < m_primeWindowSize) {
+            primeData.add(current);
+          } else {
+            forecaster.primeForecaster(primeData);
+
+            List<List<NumericPrediction>> forecast = null;
+            if (forecaster instanceof OverlayForecaster
+                    && ((OverlayForecaster) forecaster).isUsingOverlayData()) {
+
+              // can only generate forecasts for remaining training data that
+              // we can use as overlay data
+              if (current != null) {
+                Instances overlay = createOverlayForecastData(forecaster, m_trainingData, i, m_horizon);
+                ((OverlayForecaster) forecaster).forecast(m_horizon, overlay, progress);
+              }
+            } else {
+              forecaster.forecast(m_horizon, progress);
+            }
+
+            // remove the oldest prime instance and add this one
+            if (m_primeWindowSize > 0 && current != null) {
+              primeData.remove(0);
+              primeData.add(current);
+              primeData.compactify();
+            }
+          }
+          // If on the instance before the last one, save the state
+          if (i == m_trainingData.numInstances() - 2)
+            postTrainingDataState = forecaster.getPreviousState();
+        }
+        m_horizon = numStepsToForecast;
       }
       // generate a forecast beyond the end of the training data
       for (PrintStream p : progress) {
@@ -984,6 +1014,10 @@ public class TSEvaluation {
         m_testFuture = forecaster.forecast(m_horizon, progress);
       }
     }
+
+    forecaster.setPreviousState(postTrainingDataState);
+    forecaster.primeForecaster(m_trainingData);
+    forecaster.forecast(1);
   }
 
   /**

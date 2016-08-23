@@ -18,6 +18,7 @@
 
 package weka.classifiers.timeseries;
 
+import java.io.IOException;
 import java.io.PrintStream;
 import java.util.List;
 
@@ -31,6 +32,16 @@ import weka.core.Instances;
  * @version $Revision: 45163 $
  */
 public interface TSForecaster {
+
+  /**
+   * Save underlying classifier
+   */
+  public void saveBaseModel() throws IOException;
+
+  /**
+   * Load serialized classifier
+   */
+  public void loadBaseModel() throws IOException;
 
   /**
    * Check whether the base learner requires operations regarding state
@@ -47,14 +58,24 @@ public interface TSForecaster {
   /**
    * Load state into model.
    */
-  public void setPreviousState(Object previousState);
+  public void setPreviousState(List<Object> previousState);
 
   /**
    * Get the last set state of the model.
    *
    * @return the state of the model to be used in next prediction
    */
-  public Object getPreviousState();
+  public List<Object> getPreviousState();
+
+  /**
+   * Serialize model state
+   */
+  public abstract void serializeState() throws Exception;
+
+  /**
+   * De-serialize model state
+   */
+  public abstract void loadSerializedState() throws Exception;
 
   /**
    * Provides a short name that describes the underlying algorithm

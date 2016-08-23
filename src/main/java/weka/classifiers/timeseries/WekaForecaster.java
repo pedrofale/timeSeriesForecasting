@@ -36,6 +36,7 @@ import weka.filters.Filter;
 import weka.filters.unsupervised.attribute.Remove;
 import weka.filters.unsupervised.attribute.RemoveType;
 
+import java.io.IOException;
 import java.io.PrintStream;
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -155,6 +156,50 @@ public class WekaForecaster extends AbstractForecaster implements TSLagUser,
   }
 
   /**
+   * Save underlying classifier
+   *
+   * @throws IOException
+   */
+  public void saveBaseModel() throws IOException {
+    if (usesState()) {
+      for (int i = 0; i < m_singleTargetForecasters.size(); i++)
+        ((StateDependentPredictor) m_singleTargetForecasters.get(i).getWrappedClassifier()).serializeModel("/tmp/model" + i + ".base");
+    }
+  }
+
+  /**
+   * Load serialized classifier
+   *
+   * @throws IOException
+   */
+  public void loadBaseModel() throws IOException {
+    if (usesState()) {
+      for (int i = 0; i < m_singleTargetForecasters.size(); i++)
+        ((StateDependentPredictor) m_singleTargetForecasters.get(i).getWrappedClassifier()).loadSerializedModel("/tmp/model" + i + ".base");
+    }
+  }
+
+  /**
+   * Serialize model state
+   */
+  public void serializeState() throws Exception {
+    if (usesState()) {
+      for (int i = 0; i < m_singleTargetForecasters.size(); i++)
+        ((StateDependentPredictor) m_singleTargetForecasters.get(i).getWrappedClassifier()).serializeState("/tmp/model" + i + ".state");
+    }
+  }
+
+  /**
+   * Serialize model state
+   */
+  public void loadSerializedState() throws Exception {
+    if (usesState()) {
+      for (int i = 0; i < m_singleTargetForecasters.size(); i++)
+        ((StateDependentPredictor) m_singleTargetForecasters.get(i).getWrappedClassifier()).loadSerializedState("/tmp/model" + i + ".state");
+    }
+  }
+
+  /**
    * Check whether the base learner requires operations regarding state
    *
    * @return true if base learner uses state-based predictions, false otherwise
@@ -167,16 +212,20 @@ public class WekaForecaster extends AbstractForecaster implements TSLagUser,
    * Reset model state.
    */
   public void clearPreviousState() {
-    if (usesState())
-      ((StateDependentPredictor) m_singleTargetForecasters.get(0).getWrappedClassifier()).clearPreviousState();
+    if (usesState()) {
+      for (int i = 0; i < m_singleTargetForecasters.size(); i++)
+        ((StateDependentPredictor) m_singleTargetForecasters.get(i).getWrappedClassifier()).clearPreviousState();
+    }
   }
 
   /**
    * Load state into model.
    */
-  public void setPreviousState(Object previousState) {
-    if (usesState())
-      ((StateDependentPredictor) m_singleTargetForecasters.get(0).getWrappedClassifier()).setPreviousState(previousState);
+  public void setPreviousState(List<Object> previousState) {
+    if (usesState()) {
+      for (int i = 0; i < m_singleTargetForecasters.size(); i++)
+        ((StateDependentPredictor) m_singleTargetForecasters.get(i).getWrappedClassifier()).setPreviousState(previousState.get(i));
+    }
   }
 
   /**
@@ -184,12 +233,13 @@ public class WekaForecaster extends AbstractForecaster implements TSLagUser,
    *
    * @return the state of the model to be used in next prediction
    */
-  public Object getPreviousState() {
-    Object state = null;
+  public List<Object> getPreviousState() {
+    List<Object> state = new ArrayList<>();
 
-    if (usesState())
-      state = ((StateDependentPredictor) m_singleTargetForecasters.get(0).getWrappedClassifier()).getPreviousState();
-
+    if (usesState()) {
+      for (int i = 0; i < m_singleTargetForecasters.size(); i++)
+        state.add(i, ((StateDependentPredictor) m_singleTargetForecasters.get(i).getWrappedClassifier()).getPreviousState());
+    }
     return state;
   }
 

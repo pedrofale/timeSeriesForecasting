@@ -635,8 +635,11 @@ public class TSEvaluation {
     m_predictionsForTestData = null;
     m_trainingFuture = null;
     m_testFuture = null;
+
     int numStepsToForecast = m_horizon;
     forecaster.clearPreviousState();
+
+    // Initialization
     List<Object> postTrainingDataState = forecaster.getPreviousState();
 
      // train the forecaster first (if necessary)
@@ -1016,8 +1019,6 @@ public class TSEvaluation {
     }
 
     forecaster.setPreviousState(postTrainingDataState);
-    forecaster.primeForecaster(m_trainingData);
-    forecaster.forecast(1);
   }
 
   /**

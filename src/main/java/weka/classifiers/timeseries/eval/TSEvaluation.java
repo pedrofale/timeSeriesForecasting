@@ -762,7 +762,7 @@ public class TSEvaluation {
           }
         }
         // If on the instance before the last one, save the state
-        if (i == m_trainingData.numInstances() - 2)
+        if (i == m_trainingData.numInstances() - 1)
           postTrainingDataState = forecaster.getPreviousState();
       }
       m_horizon = numStepsToForecast;
@@ -813,7 +813,7 @@ public class TSEvaluation {
             }
           }
           // If on the instance before the last one, save the state
-          if (i == m_trainingData.numInstances() - 2)
+          if (i == m_trainingData.numInstances() - 1)
             postTrainingDataState = forecaster.getPreviousState();
         }
         m_horizon = numStepsToForecast;

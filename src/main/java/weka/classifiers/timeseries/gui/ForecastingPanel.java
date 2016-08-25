@@ -1071,8 +1071,8 @@ public class ForecastingPanel extends JPanel {
       }
 
       try {
-        forecaster.saveBaseModel(sFile.getName());
-        forecaster.serializeState(sFile.getName());
+        forecaster.saveBaseModel(sFile.toString());
+        forecaster.serializeState(sFile.toString());
         ObjectOutputStream oos =
           new ObjectOutputStream(new FileOutputStream(sFile));
         oos.writeObject(forecaster);

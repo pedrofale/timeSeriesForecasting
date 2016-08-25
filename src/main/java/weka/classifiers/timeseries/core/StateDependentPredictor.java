@@ -43,10 +43,10 @@ public interface StateDependentPredictor extends Classifier {
     /**
      * Serialize model
      */
-    void serializeModel(String path) throws IOException;
+    void serializeModel(String path) throws Exception;
 
     /**
      * De-serialize model
      */
-    void loadSerializedModel(String path) throws IOException;
+    void loadSerializedModel(String path) throws Exception;
 }

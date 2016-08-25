@@ -163,10 +163,10 @@ public class WekaForecaster extends AbstractForecaster implements TSLagUser,
    *
    * @throws IOException
    */
-  public void saveBaseModel(String filename) throws IOException {
+  public void saveBaseModel(String filepath) throws Exception {
     if (usesState()) {
       for (int i = 0; i < m_singleTargetForecasters.size(); i++)
-        ((StateDependentPredictor) m_singleTargetForecasters.get(i).getWrappedClassifier()).serializeModel("/tmp/" + filename + i + ".base");
+        ((StateDependentPredictor) m_singleTargetForecasters.get(i).getWrappedClassifier()).serializeModel(filepath + ".base" + i);
     }
   }
 
@@ -175,30 +175,30 @@ public class WekaForecaster extends AbstractForecaster implements TSLagUser,
    *
    * @throws IOException
    */
-  public void loadBaseModel(String filename) throws IOException {
+  public void loadBaseModel(String filepath) throws Exception {
     if (usesState()) {
       for (int i = 0; i < m_singleTargetForecasters.size(); i++)
-        ((StateDependentPredictor) m_singleTargetForecasters.get(i).getWrappedClassifier()).loadSerializedModel("/tmp/" + filename + i + ".base");
+        ((StateDependentPredictor) m_singleTargetForecasters.get(i).getWrappedClassifier()).loadSerializedModel(filepath + ".base" + i);
     }
   }
 
   /**
    * Serialize model state
    */
-  public void serializeState(String filename) throws Exception {
+  public void serializeState(String filepath) throws Exception {
     if (usesState()) {
       for (int i = 0; i < m_singleTargetForecasters.size(); i++)
-        ((StateDependentPredictor) m_singleTargetForecasters.get(i).getWrappedClassifier()).serializeState("/tmp/" + filename + i + ".state");
+        ((StateDependentPredictor) m_singleTargetForecasters.get(i).getWrappedClassifier()).serializeState(filepath + ".state" + i);
     }
   }
 
   /**
    * Serialize model state
    */
-  public void loadSerializedState(String filename) throws Exception {
+  public void loadSerializedState(String filepath) throws Exception {
     if (usesState()) {
       for (int i = 0; i < m_singleTargetForecasters.size(); i++)
-        ((StateDependentPredictor) m_singleTargetForecasters.get(i).getWrappedClassifier()).loadSerializedState("/tmp/" + filename + i + ".state");
+        ((StateDependentPredictor) m_singleTargetForecasters.get(i).getWrappedClassifier()).loadSerializedState(filepath + ".state" + i);
     }
   }
 

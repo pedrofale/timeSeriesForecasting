@@ -39,12 +39,12 @@ public interface TSForecaster {
   /**
    * Save underlying classifier
    */
-  public void saveBaseModel(String filename) throws IOException;
+  public void saveBaseModel(String filepath) throws Exception;
 
   /**
    * Load serialized classifier
    */
-  public void loadBaseModel(String filename) throws IOException;
+  public void loadBaseModel(String filepath) throws Exception;
 
   /**
    * Check whether the base learner requires operations regarding state
@@ -73,12 +73,12 @@ public interface TSForecaster {
   /**
    * Serialize model state
    */
-  public abstract void serializeState(String filename) throws Exception;
+  public abstract void serializeState(String filepath) throws Exception;
 
   /**
    * De-serialize model state
    */
-  public abstract void loadSerializedState(String filename) throws Exception;
+  public abstract void loadSerializedState(String filepath) throws Exception;
 
   /**
    * Provides a short name that describes the underlying algorithm

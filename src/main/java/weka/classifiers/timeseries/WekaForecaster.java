@@ -158,32 +158,46 @@ public class WekaForecaster extends AbstractForecaster implements TSLagUser,
     }
   }
 
+    /**
+     * Check whether the base learner requires special serialization
+     *
+     * @return true if base learner requires special serialization, false otherwise
+     */
+    public boolean baseModelHasSerializer() {
+        return m_forecaster instanceof BaseModelSerializer;
+    }
+
   /**
    * Save underlying classifier
    *
-   * @throws IOException
+   * @param filepath the path of the file to save the base model to
+   * @throws Exception
    */
   public void saveBaseModel(String filepath) throws Exception {
-    if (usesState()) {
+    if (baseModelHasSerializer()) {
       for (int i = 0; i < m_singleTargetForecasters.size(); i++)
-        ((StateDependentPredictor) m_singleTargetForecasters.get(i).getWrappedClassifier()).serializeModel(filepath + ".base" + i);
+        ((BaseModelSerializer) m_singleTargetForecasters.get(i).getWrappedClassifier()).serializeModel(filepath + ".base" + i);
     }
   }
 
   /**
    * Load serialized classifier
    *
-   * @throws IOException
+   * @param filepath the path of the file to load the base model from
+   * @throws Exception
    */
   public void loadBaseModel(String filepath) throws Exception {
-    if (usesState()) {
+    if (baseModelHasSerializer()) {
       for (int i = 0; i < m_singleTargetForecasters.size(); i++)
-        ((StateDependentPredictor) m_singleTargetForecasters.get(i).getWrappedClassifier()).loadSerializedModel(filepath + ".base" + i);
+        ((BaseModelSerializer) m_singleTargetForecasters.get(i).getWrappedClassifier()).loadSerializedModel(filepath + ".base" + i);
     }
   }
 
   /**
    * Serialize model state
+   *
+   * @param filepath the path of the file to save the model state to
+   * @throws Exception
    */
   public void serializeState(String filepath) throws Exception {
     if (usesState()) {
@@ -193,7 +207,10 @@ public class WekaForecaster extends AbstractForecaster implements TSLagUser,
   }
 
   /**
-   * Serialize model state
+   * Load serialized model state
+   *
+   * @param filepath the path of the file to save the model state from
+   * @throws Exception
    */
   public void loadSerializedState(String filepath) throws Exception {
     if (usesState()) {

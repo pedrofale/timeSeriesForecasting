@@ -37,12 +37,25 @@ import weka.core.Instances;
 public interface TSForecaster {
 
   /**
+   * Check whether the base learner requires special serialization
+   *
+   * @return true if base learner requires special serialization, false otherwise
+   */
+  public boolean baseModelHasSerializer();
+
+  /**
    * Save underlying classifier
+   *
+   * @param filepath the path of the file to save the base model to
+   * @throws Exception
    */
   public void saveBaseModel(String filepath) throws Exception;
 
   /**
    * Load serialized classifier
+   *
+   * @param filepath the path of the file to load the base model from
+   * @throws Exception
    */
   public void loadBaseModel(String filepath) throws Exception;
 
@@ -72,13 +85,19 @@ public interface TSForecaster {
 
   /**
    * Serialize model state
+   *
+   * @param filepath the path of the file to save the model state to
+   * @throws Exception
    */
-  public abstract void serializeState(String filepath) throws Exception;
+  public void serializeState(String filepath) throws Exception;
 
   /**
-   * De-serialize model state
+   * Load serialized model state
+   *
+   * @param filepath the path of the file to save the model state from
+   * @throws Exception
    */
-  public abstract void loadSerializedState(String filepath) throws Exception;
+  public void loadSerializedState(String filepath) throws Exception;
 
   /**
    * Provides a short name that describes the underlying algorithm

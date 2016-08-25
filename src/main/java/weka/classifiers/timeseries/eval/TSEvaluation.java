@@ -639,10 +639,9 @@ public class TSEvaluation {
     m_trainingFuture = null;
     m_testFuture = null;
 
+    // Initialization for state dependent predictors
     int numStepsToForecast = m_horizon;
     forecaster.clearPreviousState();
-
-    // Initialization
     List<Object> postTrainingDataState = forecaster.getPreviousState();
 
      // train the forecaster first (if necessary)
@@ -761,7 +760,7 @@ public class TSEvaluation {
             primeData.compactify();
           }
         }
-        // If on the instance before the last one, save the state
+        // If on the instance before the last one, save the state of the state dependent predictor
         if (i == m_trainingData.numInstances() - 1)
           postTrainingDataState = forecaster.getPreviousState();
       }
@@ -812,7 +811,7 @@ public class TSEvaluation {
               primeData.compactify();
             }
           }
-          // If on the instance before the last one, save the state
+          // If on the instance before the last one, save the state of the state dependent predictor
           if (i == m_trainingData.numInstances() - 1)
             postTrainingDataState = forecaster.getPreviousState();
         }
@@ -1021,6 +1020,8 @@ public class TSEvaluation {
       }
     }
 
+    // Set the state dependent forecaster ready to make predictions beyond the training data
+    // TODO: add checkbox on Forecasting Panel to reset or load state instead
     forecaster.setPreviousState(postTrainingDataState);
   }
 

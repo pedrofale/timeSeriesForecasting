@@ -19,8 +19,6 @@
     <dependency org="jfree" name="jcommon" rev="${dependency.jcommon.revision}" transitive="false" conf="default->default" changing="true" />
     <dependency org="commons-codec" name="commons-codec" rev="${dependency.commons-codec.revision}" transitive="false" conf="default->default" changing="true" />
 
-    <dependency org="pentaho.weka" name="pdm-3.7-ce" rev="${dependency.weka.revision}" transitive="false" conf="default->default" changing="true" />
-
 <!--        <dependency org="commons-logging" name="commons-logging" rev="1.1" transitive="false"/> -->
     </dependencies>
 </ivy-module>

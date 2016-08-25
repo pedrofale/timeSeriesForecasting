@@ -13,10 +13,10 @@
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+
 /*
  *    TimeSeriesPerspective.java
- *    Copyright (C) 2015 University of Waikato, Hamilton, New Zealand
- *
+ *    Copyright (C) 2010-2016 University of Waikato, Hamilton, New Zealand
  */
 
 package weka.gui.knowledgeflow;

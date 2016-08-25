@@ -1,2 +1,6 @@
 /build-res
 .idea/
+/dist
+dist/timeseriesForecasting.zip
+dist/
+*.iml

@@ -21,7 +21,6 @@
 
 package weka.classifiers.timeseries;
 
-import java.io.IOException;
 import java.io.PrintStream;
 import java.util.List;
 

@@ -352,7 +352,7 @@ public class ErrorBasedConfidenceIntervalEstimator implements Serializable {
       // to the end
       primeInsts.delete(0);
       primeInsts.add(insts.instance(i));
-      primeInsts.compactify();      
+      primeInsts.compactify();
     }
 
     m_confidenceLimitsForTargets = new ArrayList<List<double[]>>();

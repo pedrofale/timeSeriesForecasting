@@ -727,11 +727,7 @@ public class TSEvaluation {
                 + " instances...");
             }
           }
-          // Clear state every time a forecast is made on new priming data
           forecaster.primeForecaster(primeData);
-          /*
-           * System.err.println(primeData); System.exit(1);
-           */
 
           List<List<NumericPrediction>> forecast = null;
           if (forecaster instanceof OverlayForecaster
@@ -770,7 +766,8 @@ public class TSEvaluation {
     if (m_trainingData != null && m_forecastFuture) {
       // To generate future forecast for training data, a state-dependent
       // model must start predictions from the beginning of the training data
-      if (!m_evaluateTrainingData && forecaster.usesState()) {
+      if (forecaster.usesState()) {
+        forecaster.clearPreviousState();
         m_horizon = 1;
 
         Instances primeData = new Instances(m_trainingData, 0);

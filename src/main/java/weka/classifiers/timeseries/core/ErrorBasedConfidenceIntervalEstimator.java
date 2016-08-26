@@ -171,6 +171,62 @@ public class ErrorBasedConfidenceIntervalEstimator implements Serializable {
 
     return overlay;
   }
+
+  /**
+   * Get all the instances in an Instances set up to (and excluding) a specified Instance
+   *
+   * @param fullBatch the full batch to get a set of instances from
+   * @param lastInst the instance up to which all instances must be copied, excluding this one
+   * @return the set of instances desired
+   */
+  private Instances getInstancesUpTo(Instances fullBatch, Instance lastInst) {
+    int toCopy = 0;
+    for (int i = 0; i < fullBatch.numInstances(); i++) {
+      if (fullBatch.instance(i).toString().equalsIgnoreCase(lastInst.toString())) {
+        toCopy = i;
+        break;
+      }
+    }
+
+    return new Instances(fullBatch, 0, toCopy);
+  }
+
+  /**
+   * Make one step-ahead predictions for each step in a batch. Designed for forecasters
+   * which use StateDependentPredictors, for which each prediction alters their state
+   *
+   * @param forecaster the forecaster to use to make predictions
+   * @param batch the batch to make predictions on
+   * @param primeWindowSize number of priming instances to use
+   * @throws Exception if something goes wrong
+   */
+  private void forecastForBatchOneStepAhead(TSForecaster forecaster, Instances batch, int primeWindowSize) throws Exception {
+    if (forecaster instanceof TSLagUser) {
+      // if an artificial time stamp is being used, make sure it is reset
+      if (((TSLagUser) forecaster).getTSLagMaker().isUsingAnArtificialTimeIndex()) {
+        ((TSLagUser) forecaster).getTSLagMaker().setArtificialTimeStartValue(primeWindowSize);
+      }
+    }
+    for (int i = 0; i < batch.numInstances(); i++) {
+      Instance current = batch.instance(i);
+
+      forecaster.primeForecaster(batch);
+
+      if (forecaster instanceof OverlayForecaster
+              && ((OverlayForecaster) forecaster).isUsingOverlayData()) {
+
+        // can only generate forecasts for remaining training data that
+        // we can use as overlay data
+        if (current != null) {
+          Instances overlay = createOverlayForecastData(forecaster, batch, i, 1);
+
+          ((OverlayForecaster) forecaster).forecast(1, overlay);
+        }
+      } else {
+        forecaster.forecast(1);
+      }
+    }
+  }
   
   /**
    * Computes confidence intervals using the supplied forecster and
@@ -310,53 +366,6 @@ public class ErrorBasedConfidenceIntervalEstimator implements Serializable {
       }
       m_confidenceLimitsForTargets.add(limitsForSingleTarget);
     }    
-  }
-
-  /**
-   * Get all the instances in an Instances up to a determined Instance
-   */
-  private Instances getInstancesUpTo(Instances fullBatch, Instance lastInst) {
-    int toCopy = 0;
-    for (int i = 0; i < fullBatch.numInstances(); i++) {
-      if (fullBatch.instance(i).toString().equalsIgnoreCase(lastInst.toString())) {
-        toCopy = i;
-        break;
-      }
-    }
-
-    return new Instances(fullBatch, 0, toCopy);
-  }
-
-  /**
-   * Make one step-ahead predictions for each step in a batch
-   */
-  private void forecastForBatchOneStepAhead(TSForecaster forecaster, Instances batch, int primeWindowSize) throws Exception {
-    if (forecaster instanceof TSLagUser) {
-      // if an artificial time stamp is being used, make sure it is reset for
-      // evaluating the training data
-      if (((TSLagUser) forecaster).getTSLagMaker().isUsingAnArtificialTimeIndex()) {
-        ((TSLagUser) forecaster).getTSLagMaker().setArtificialTimeStartValue(primeWindowSize);
-      }
-    }
-    for (int i = 0; i < batch.numInstances(); i++) {
-      Instance current = batch.instance(i);
-
-      forecaster.primeForecaster(batch);
-
-      if (forecaster instanceof OverlayForecaster
-              && ((OverlayForecaster) forecaster).isUsingOverlayData()) {
-
-        // can only generate forecasts for remaining training data that
-        // we can use as overlay data
-        if (current != null) {
-          Instances overlay = createOverlayForecastData(forecaster, batch, i, 1);
-
-          ((OverlayForecaster) forecaster).forecast(1, overlay);
-        }
-      } else {
-        forecaster.forecast(1);
-      }
-    }
   }
 
   /**

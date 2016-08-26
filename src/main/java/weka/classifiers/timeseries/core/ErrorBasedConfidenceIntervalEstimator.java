@@ -301,9 +301,12 @@ public class ErrorBasedConfidenceIntervalEstimator implements Serializable {
     }
 
     for (int i = numPrime; i < insts.numInstances(); i++) {
-      Instances batch = getInstancesUpTo(insts, primeInsts.lastInstance());
-      forecaster.clearPreviousState();
-      forecastForBatchOneStepAhead(forecaster, batch, primeInsts.size());
+      if (forecaster.usesState()) {
+        Instances batch = getInstancesUpTo(insts, primeInsts.lastInstance());
+        forecaster.clearPreviousState();
+        forecastForBatchOneStepAhead(forecaster, batch, primeInsts.size());
+      }
+
       forecaster.primeForecaster(primeInsts);
       
       if (i % 10 == 0) {

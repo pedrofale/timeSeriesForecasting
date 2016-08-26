@@ -29,6 +29,8 @@ import weka.classifiers.Classifier;
  * Useful for forecasters which use models which store state of last prediction to be used in the next
  * prediction.
  *
+ * A state-dependent predictor is
+ *
  * Created by pedrofale on 17-08-2016.
  */
 public interface StateDependentPredictor extends Classifier {

@@ -233,7 +233,7 @@ public class ErrorBasedConfidenceIntervalEstimator implements Serializable {
       m.setTargetFields(m_targetFields);
       confidenceCalculators.add(m);
     }
-    
+
     Instances primeInsts = new Instances(insts, 0, numPrime);
 /*    for (int i = 0; i < numPrime; i++) {
       primeInsts.add(insts.instance(i));
@@ -242,9 +242,12 @@ public class ErrorBasedConfidenceIntervalEstimator implements Serializable {
     if (forecaster instanceof TSLagUser && artificialTimeStartValue >= 0) {
       ((TSLagUser)forecaster).getTSLagMaker().
         setArtificialTimeStartValue(artificialTimeStartValue - 1 + numPrime);
-    }    
-    
+    }
+
     for (int i = numPrime; i < insts.numInstances(); i++) {
+      Instances batch = getInstancesUpTo(insts, primeInsts.lastInstance());
+      forecaster.clearPreviousState();
+      forecastForBatchOneStepAhead(forecaster, batch, primeInsts.size());
       forecaster.primeForecaster(primeInsts);
       
       if (i % 10 == 0) {
@@ -253,7 +256,8 @@ public class ErrorBasedConfidenceIntervalEstimator implements Serializable {
         }
       }
       
-      List<List<NumericPrediction>> forecastForSteps = null; 
+      List<List<NumericPrediction>> forecastForSteps = null;
+
       if (forecaster instanceof OverlayForecaster && 
           ((OverlayForecaster)forecaster).isUsingOverlayData()) {        
         // can only generate forecasts for remaining training data that
@@ -291,7 +295,7 @@ public class ErrorBasedConfidenceIntervalEstimator implements Serializable {
       primeInsts.add(insts.instance(i));
       primeInsts.compactify();      
     }
-    
+
     m_confidenceLimitsForTargets = new ArrayList<List<double[]>>();
     for (int j = 0; j < m_targetFields.size(); j++) {
       ArrayList<double[]> limitsForSingleTarget = new ArrayList<double[]>();
@@ -306,6 +310,53 @@ public class ErrorBasedConfidenceIntervalEstimator implements Serializable {
       }
       m_confidenceLimitsForTargets.add(limitsForSingleTarget);
     }    
+  }
+
+  /**
+   * Get all the instances in an Instances up to a determined Instance
+   */
+  private Instances getInstancesUpTo(Instances fullBatch, Instance lastInst) {
+    int toCopy = 0;
+    for (int i = 0; i < fullBatch.numInstances(); i++) {
+      if (fullBatch.instance(i).toString().equalsIgnoreCase(lastInst.toString())) {
+        toCopy = i;
+        break;
+      }
+    }
+
+    return new Instances(fullBatch, 0, toCopy);
+  }
+
+  /**
+   * Make one step-ahead predictions for each step in a batch
+   */
+  private void forecastForBatchOneStepAhead(TSForecaster forecaster, Instances batch, int primeWindowSize) throws Exception {
+    if (forecaster instanceof TSLagUser) {
+      // if an artificial time stamp is being used, make sure it is reset for
+      // evaluating the training data
+      if (((TSLagUser) forecaster).getTSLagMaker().isUsingAnArtificialTimeIndex()) {
+        ((TSLagUser) forecaster).getTSLagMaker().setArtificialTimeStartValue(primeWindowSize);
+      }
+    }
+    for (int i = 0; i < batch.numInstances(); i++) {
+      Instance current = batch.instance(i);
+
+      forecaster.primeForecaster(batch);
+
+      if (forecaster instanceof OverlayForecaster
+              && ((OverlayForecaster) forecaster).isUsingOverlayData()) {
+
+        // can only generate forecasts for remaining training data that
+        // we can use as overlay data
+        if (current != null) {
+          Instances overlay = createOverlayForecastData(forecaster, batch, i, 1);
+
+          ((OverlayForecaster) forecaster).forecast(1, overlay);
+        }
+      } else {
+        forecaster.forecast(1);
+      }
+    }
   }
 
   /**

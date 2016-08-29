@@ -7,5 +7,5 @@ mvn -Dmaven.test.skip=true install
 ant -f build_package.xml clean
 
 # build the package
-ant -f build_package.xml make_package -Dpackage=timeSeriesForecasting
+ant -f build_package.xml make_package -Dpackage=timeseriesForecasting
 

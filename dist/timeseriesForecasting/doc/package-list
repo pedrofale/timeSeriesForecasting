@@ -1,0 +1,11 @@
+weka.classifiers.timeseries
+weka.classifiers.timeseries.core
+weka.classifiers.timeseries.eval
+weka.classifiers.timeseries.eval.graph
+weka.classifiers.timeseries.gui
+weka.classifiers.timeseries.gui.explorer
+weka.filters.supervised.attribute
+weka.gui.beans
+weka.gui.knowledgeflow
+weka.gui.knowledgeflow.steps
+weka.knowledgeflow.steps

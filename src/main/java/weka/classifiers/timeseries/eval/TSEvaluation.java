@@ -1058,7 +1058,7 @@ public class TSEvaluation {
   }
 
   /**
-   * Get all the instances in an Instances set up to (and excluding) a specified Instance. If we want
+   * Get all the instances in an Instances set up to (and excluding) a specified Instance. If
    * the fullBatch is the test data, add the training data to it first so we get the full batch data
    *
    * @param fullBatch the full batch to get a set of instances from

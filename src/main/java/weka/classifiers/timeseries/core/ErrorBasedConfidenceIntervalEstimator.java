@@ -221,7 +221,7 @@ public class ErrorBasedConfidenceIntervalEstimator implements Serializable {
       if (forecaster instanceof OverlayForecaster && ((OverlayForecaster) forecaster).isUsingOverlayData()) {
         // can only generate forecasts for remaining training data that
         // we can use as overlay data
-        if (batch.instance(i + 1) != null) {
+        if (batch.instance(i) != batch.lastInstance()) {
           Instances overlay = createOverlayForecastData(forecaster, batch, i + 1, stepsToForecast);
           forecast = ((OverlayForecaster) forecaster).forecast(stepsToForecast, overlay);
         }

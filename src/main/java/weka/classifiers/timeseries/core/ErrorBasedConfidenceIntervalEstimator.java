@@ -213,20 +213,23 @@ public class ErrorBasedConfidenceIntervalEstimator implements Serializable {
       }
     }
     for (int i = 0; i < batch.numInstances(); i++) {
-      Instance current = batch.instance(i);
-      Instances primeData = getInstancesUpTo(batch, current);
-      primeData.add(current);
-      forecaster.primeForecaster(primeData);
+      // Make sure we have enough priming data
+      if (!(i < primeWindowSize)) {
+        Instance current = batch.instance(i);
+        Instances primeData = getInstancesUpTo(batch, current);
+        primeData.add(current);
+        forecaster.primeForecaster(primeData);
 
-      if (forecaster instanceof OverlayForecaster && ((OverlayForecaster) forecaster).isUsingOverlayData()) {
-        // can only generate forecasts for remaining training data that
-        // we can use as overlay data
-        if (batch.instance(i) != batch.lastInstance()) {
-          Instances overlay = createOverlayForecastData(forecaster, batch, i + 1, stepsToForecast);
-          forecast = ((OverlayForecaster) forecaster).forecast(stepsToForecast, overlay);
+        if (forecaster instanceof OverlayForecaster && ((OverlayForecaster) forecaster).isUsingOverlayData()) {
+          // can only generate forecasts for remaining training data that
+          // we can use as overlay data
+          if (batch.instance(i) != batch.lastInstance()) {
+            Instances overlay = createOverlayForecastData(forecaster, batch, i + 1, stepsToForecast);
+            forecast = ((OverlayForecaster) forecaster).forecast(stepsToForecast, overlay);
+          }
+        } else {
+          forecast = forecaster.forecast(stepsToForecast);
         }
-      } else {
-        forecast = forecaster.forecast(stepsToForecast);
       }
     }
   }

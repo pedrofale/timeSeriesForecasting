@@ -756,20 +756,15 @@ public class TSEvaluation {
           }
         }
       }
-      if (forecaster.usesState()) {
-        predictionsForTrainingData(forecaster, 1);
-        postTrainingDataState = forecaster.getPreviousState();
-      }
+
+    }
+
+    if (forecaster.usesState()) {
+      predictionsForTrainingData(forecaster, 1);
+      postTrainingDataState = forecaster.getPreviousState();
     }
 
     if (m_trainingData != null && m_forecastFuture) {
-      // To generate future forecast for training data, a state-dependent
-      // model must start predictions from the beginning of the training data
-      if (forecaster.usesState() && !m_evaluateTrainingData) {
-        predictionsForTrainingData(forecaster, 1);
-        postTrainingDataState = forecaster.getPreviousState();
-      }
-
       // generate a forecast beyond the end of the training data
       for (PrintStream p : progress) {
         p.println("Generating future forecast for training data...");

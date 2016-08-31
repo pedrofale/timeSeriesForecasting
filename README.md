@@ -6,4 +6,4 @@ Confidence interval computation and evaluation on training and test data for the
 Lots of tests have been made for this version and I'm 99% sure everything is working properly.
 
 Known bugs: 
-- confidence interval calculation outputs NaN when all the predictions on the training data have a negative error relative to the actual value. This isn't an issue regarding state dependent predictors -- it will happen on any predictor.
+- confidence interval calculation outputs NaN when the predictions on the training data have either all a negative or a positive error relative to the actual value. This isn't an issue regarding state dependent predictors -- it will happen on any predictor.
